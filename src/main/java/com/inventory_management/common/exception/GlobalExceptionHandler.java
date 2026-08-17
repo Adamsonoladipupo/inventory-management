@@ -1,7 +1,5 @@
 package com.inventory_management.common.exception;
 
-import com.inventory_management.user.exception.DuplicateEmailException;
-import com.inventory_management.user.exception.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -31,22 +29,22 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles UserNotFoundException — e.g. GET /api/v1/users/{id} with unknown id.
+     * Handles all NotFoundException subclasses (UserNotFoundException, BusinessNotFoundException, etc.).
      * Returns HTTP 404.
      */
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex) {
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ErrorResponse.of(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
     }
 
     /**
-     * Handles duplicate email on user creation.
+     * Handles all ConflictException subclasses (DuplicateEmailException, etc.).
      * Returns HTTP 409 Conflict.
      */
-    @ExceptionHandler(DuplicateEmailException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateEmail(DuplicateEmailException ex) {
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponse> handleConflict(ConflictException ex) {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(ErrorResponse.of(HttpStatus.CONFLICT.value(), ex.getMessage()));

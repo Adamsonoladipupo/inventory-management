@@ -42,7 +42,8 @@ class UserControllerTest {
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
-    private final UUID userId = UUID.randomUUID();
+    private final UUID userId     = UUID.randomUUID();
+    private final UUID businessId = UUID.randomUUID();
     private UserResponse sampleResponse;
 
     @BeforeEach
@@ -59,7 +60,9 @@ class UserControllerTest {
                 "ade@example.com",
                 UserRole.OWNER,
                 true,
-                Instant.now()
+                Instant.now(),
+                businessId,
+                "Ade Stores"
         );
     }
 
@@ -71,7 +74,7 @@ class UserControllerTest {
     @DisplayName("POST /api/v1/users: 201 with valid request")
     void createUser_valid_returns201() throws Exception {
         CreateUserRequest request = new CreateUserRequest(
-                "Ade Bello", "ade@example.com", "secret123", UserRole.OWNER
+                "Ade Bello", "ade@example.com", "secret123", UserRole.OWNER, businessId
         );
         when(userService.createUser(any(CreateUserRequest.class))).thenReturn(sampleResponse);
 
@@ -83,7 +86,9 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.name").value("Ade Bello"))
                 .andExpect(jsonPath("$.email").value("ade@example.com"))
                 .andExpect(jsonPath("$.role").value("OWNER"))
-                .andExpect(jsonPath("$.active").value(true));
+                .andExpect(jsonPath("$.active").value(true))
+                .andExpect(jsonPath("$.businessId").value(businessId.toString()))
+                .andExpect(jsonPath("$.businessName").value("Ade Stores"));
     }
 
     @Test
@@ -102,8 +107,8 @@ class UserControllerTest {
     @DisplayName("POST /api/v1/users: 400 when email is malformed")
     void createUser_invalidEmail_returns400() throws Exception {
         String body = """
-                {"name":"Ade Bello","email":"not-an-email","password":"secret123","role":"OWNER"}
-                """;
+                {"name":"Ade Bello","email":"not-an-email","password":"secret123","role":"OWNER","businessId":"%s"}
+                """.formatted(businessId);
 
         mockMvc.perform(post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -113,10 +118,24 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("POST /api/v1/users: 400 when businessId is missing")
+    void createUser_missingBusinessId_returns400() throws Exception {
+        String body = """
+                {"name":"Ade Bello","email":"ade@example.com","password":"secret123","role":"OWNER"}
+                """;
+
+        mockMvc.perform(post("/api/v1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.businessId").exists());
+    }
+
+    @Test
     @DisplayName("POST /api/v1/users: 409 when email is already taken")
     void createUser_duplicateEmail_returns409() throws Exception {
         CreateUserRequest request = new CreateUserRequest(
-                "Ade Bello", "ade@example.com", "secret123", UserRole.OWNER
+                "Ade Bello", "ade@example.com", "secret123", UserRole.OWNER, businessId
         );
         when(userService.createUser(any())).thenThrow(new DuplicateEmailException("ade@example.com"));
 
@@ -140,7 +159,9 @@ class UserControllerTest {
         mockMvc.perform(get("/api/v1/users/" + userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(userId.toString()))
-                .andExpect(jsonPath("$.email").value("ade@example.com"));
+                .andExpect(jsonPath("$.email").value("ade@example.com"))
+                .andExpect(jsonPath("$.businessId").value(businessId.toString()))
+                .andExpect(jsonPath("$.businessName").value("Ade Stores"));
     }
 
     @Test
@@ -172,7 +193,7 @@ class UserControllerTest {
     void getAllUsers_returns200WithList() throws Exception {
         UserResponse second = new UserResponse(
                 UUID.randomUUID(), "Chioma Obi", "chioma@example.com",
-                UserRole.MANAGER, true, Instant.now()
+                UserRole.MANAGER, true, Instant.now(), businessId, "Ade Stores"
         );
         when(userService.getAllUsers()).thenReturn(List.of(sampleResponse, second));
 
@@ -202,7 +223,8 @@ class UserControllerTest {
     void updateUser_valid_returns200() throws Exception {
         UpdateUserRequest request = new UpdateUserRequest("Ade Updated", "ade.updated@example.com", UserRole.MANAGER);
         UserResponse updated = new UserResponse(
-                userId, "Ade Updated", "ade.updated@example.com", UserRole.MANAGER, true, Instant.now()
+                userId, "Ade Updated", "ade.updated@example.com",
+                UserRole.MANAGER, true, Instant.now(), businessId, "Ade Stores"
         );
         when(userService.updateUser(eq(userId), any(UpdateUserRequest.class))).thenReturn(updated);
 
@@ -262,7 +284,8 @@ class UserControllerTest {
     @DisplayName("PATCH /api/v1/users/{id}/activate: 200 with active=true")
     void activateUser_returns200() throws Exception {
         UserResponse activated = new UserResponse(
-                userId, "Ade Bello", "ade@example.com", UserRole.OWNER, true, Instant.now()
+                userId, "Ade Bello", "ade@example.com",
+                UserRole.OWNER, true, Instant.now(), businessId, "Ade Stores"
         );
         when(userService.activateUser(userId)).thenReturn(activated);
 
@@ -289,7 +312,8 @@ class UserControllerTest {
     @DisplayName("PATCH /api/v1/users/{id}/deactivate: 200 with active=false")
     void deactivateUser_returns200() throws Exception {
         UserResponse deactivated = new UserResponse(
-                userId, "Ade Bello", "ade@example.com", UserRole.OWNER, false, Instant.now()
+                userId, "Ade Bello", "ade@example.com",
+                UserRole.OWNER, false, Instant.now(), businessId, "Ade Stores"
         );
         when(userService.deactivateUser(userId)).thenReturn(deactivated);
 

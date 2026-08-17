@@ -1,5 +1,8 @@
 package com.inventory_management.user.service;
 
+import com.inventory_management.business.entity.Business;
+import com.inventory_management.business.exception.BusinessNotFoundException;
+import com.inventory_management.business.repository.BusinessRepository;
 import com.inventory_management.user.dto.CreateUserRequest;
 import com.inventory_management.user.dto.UpdateUserRequest;
 import com.inventory_management.user.dto.UserResponse;
@@ -18,9 +21,11 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final BusinessRepository businessRepository;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, BusinessRepository businessRepository) {
         this.userRepository = userRepository;
+        this.businessRepository = businessRepository;
     }
 
     @Override
@@ -29,12 +34,16 @@ public class UserServiceImpl implements UserService {
             throw new DuplicateEmailException(request.email());
         }
 
+        Business business = businessRepository.findById(request.businessId())
+                .orElseThrow(() -> new BusinessNotFoundException(request.businessId()));
+
         User user = new User();
         user.setName(request.name());
         user.setEmail(request.email());
         user.setPassword(request.password());
         user.setRole(request.role());
         user.setActive(true);
+        user.setBusiness(business);
 
         return toResponse(userRepository.save(user));
     }
@@ -94,7 +103,9 @@ public class UserServiceImpl implements UserService {
                 user.getEmail(),
                 user.getRole(),
                 user.isActive(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                user.getBusiness().getId(),
+                user.getBusiness().getName()
         );
     }
 }

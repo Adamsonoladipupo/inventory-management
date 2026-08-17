@@ -11,6 +11,8 @@ public record UserResponse(
         String email,
         UserRole role,
         boolean active,
-        Instant createdAt
+        Instant createdAt,
+        UUID businessId,
+        String businessName
 ) {
 }

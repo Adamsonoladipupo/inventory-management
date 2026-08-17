@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 public record CreateUserRequest(
         @NotBlank(message = "Name is required")
         @Size(max = 150, message = "Name must not exceed 150 characters")
@@ -21,6 +23,9 @@ public record CreateUserRequest(
         String password,
 
         @NotNull(message = "Role is required")
-        UserRole role
+        UserRole role,
+
+        @NotNull(message = "Business ID is required")
+        UUID businessId
 ) {
 }

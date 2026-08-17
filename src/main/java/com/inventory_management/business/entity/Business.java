@@ -1,21 +1,22 @@
-package com.inventory_management.user.entity;
+package com.inventory_management.business.entity;
 
-import com.inventory_management.business.entity.Business;
-import com.inventory_management.user.UserRole;
+import com.inventory_management.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Table(name = "businesses")
 @Getter
 @Setter
 @NoArgsConstructor
-public class User {
+public class Business {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -28,12 +29,11 @@ public class User {
     @Column(name = "email", nullable = false, unique = true, length = 150)
     private String email;
 
-    @Column(name = "password", nullable = false, length = 255)
-    private String password;
+    @Column(name = "phone", nullable = false, length = 30)
+    private String phone;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, length = 30)
-    private UserRole role;
+    @Column(name = "address", nullable = false, length = 255)
+    private String address;
 
     @Column(name = "active", nullable = false)
     private boolean active = true;
@@ -41,9 +41,8 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "business_id", nullable = false)
-    private Business business;
+    @OneToMany(mappedBy = "business")
+    private List<User> users = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
