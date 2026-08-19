@@ -53,9 +53,7 @@ class BusinessServiceImplTest {
         return business;
     }
 
-    // =========================================================================
     // createBusiness
-    // =========================================================================
 
     @Nested
     @DisplayName("createBusiness()")
@@ -242,9 +240,7 @@ class BusinessServiceImplTest {
         }
     }
 
-    // =========================================================================
     // getBusinessById
-    // =========================================================================
 
     @Nested
     @DisplayName("getBusinessById()")
@@ -349,9 +345,7 @@ class BusinessServiceImplTest {
         }
     }
 
-    // =========================================================================
     // getAllBusinesses
-    // =========================================================================
 
     @Nested
     @DisplayName("getAllBusinesses()")
@@ -407,9 +401,7 @@ class BusinessServiceImplTest {
         }
     }
 
-    // =========================================================================
     // updateBusiness
-    // =========================================================================
 
     @Nested
     @DisplayName("updateBusiness()")
@@ -535,9 +527,7 @@ class BusinessServiceImplTest {
         }
     }
 
-    // =========================================================================
     // activateBusiness
-    // =========================================================================
 
     @Nested
     @DisplayName("activateBusiness()")
@@ -598,9 +588,7 @@ class BusinessServiceImplTest {
         }
     }
 
-    // =========================================================================
     // deactivateBusiness
-    // =========================================================================
 
     @Nested
     @DisplayName("deactivateBusiness()")
@@ -658,9 +646,7 @@ class BusinessServiceImplTest {
         }
     }
 
-    // =========================================================================
     // toResponse mapping
-    // =========================================================================
 
     @Nested
     @DisplayName("toResponse() mapping (observed via createBusiness and getBusinessById)")

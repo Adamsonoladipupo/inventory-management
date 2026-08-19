@@ -10,6 +10,7 @@ import com.inventory_management.user.entity.User;
 import com.inventory_management.user.exception.DuplicateEmailException;
 import com.inventory_management.user.exception.UserNotFoundException;
 import com.inventory_management.user.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,10 +23,14 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final BusinessRepository businessRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, BusinessRepository businessRepository) {
+    public UserServiceImpl(UserRepository userRepository,
+                           BusinessRepository businessRepository,
+                           PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.businessRepository = businessRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -40,7 +45,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setName(request.name());
         user.setEmail(request.email());
-        user.setPassword(request.password());
+        user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(request.role());
         user.setActive(true);
         user.setBusiness(business);

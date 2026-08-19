@@ -66,9 +66,7 @@ class UserControllerTest {
         );
     }
 
-    // =========================================================================
     // POST /api/v1/users
-    // =========================================================================
 
     @Test
     @DisplayName("POST /api/v1/users: 201 with valid request")
@@ -147,9 +145,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.message").value("A user with this email already exists: ade@example.com"));
     }
 
-    // =========================================================================
     // GET /api/v1/users/{id}
-    // =========================================================================
 
     @Test
     @DisplayName("GET /api/v1/users/{id}: 200 with valid UUID for existing user")
@@ -184,9 +180,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status").value(400));
     }
 
-    // =========================================================================
     // GET /api/v1/users
-    // =========================================================================
 
     @Test
     @DisplayName("GET /api/v1/users: 200 with list of users")
@@ -214,9 +208,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.length()").value(0));
     }
 
-    // =========================================================================
     // PUT /api/v1/users/{id}
-    // =========================================================================
 
     @Test
     @DisplayName("PUT /api/v1/users/{id}: 200 with updated user on valid request")
@@ -276,9 +268,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status").value(409));
     }
 
-    // =========================================================================
     // PATCH /api/v1/users/{id}/activate
-    // =========================================================================
 
     @Test
     @DisplayName("PATCH /api/v1/users/{id}/activate: 200 with active=true")
@@ -304,9 +294,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status").value(404));
     }
 
-    // =========================================================================
     // PATCH /api/v1/users/{id}/deactivate
-    // =========================================================================
 
     @Test
     @DisplayName("PATCH /api/v1/users/{id}/deactivate: 200 with active=false")

@@ -22,6 +22,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
 import java.util.List;
@@ -44,6 +46,9 @@ class UserServiceImplTest {
     @Mock
     private BusinessRepository businessRepository;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -51,7 +56,6 @@ class UserServiceImplTest {
     private static final UUID FIXED_BUSINESS_ID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
     private static final Instant FIXED_TIME     = Instant.parse("2026-01-01T10:00:00Z");
 
-    /** Builds a minimal Business with the fixed business id and name. */
     private Business buildBusiness(String name) {
         Business b = new Business();
         b.setId(FIXED_BUSINESS_ID);
@@ -64,7 +68,6 @@ class UserServiceImplTest {
         return b;
     }
 
-    /** Builds a saved User that is linked to the given Business. */
     private User buildSavedUser(String name, String email, String password, UserRole role, Business business) {
         User user = new User();
         user.setId(FIXED_USER_ID);
@@ -78,9 +81,7 @@ class UserServiceImplTest {
         return user;
     }
 
-    // =========================================================================
     // createUser
-    // =========================================================================
 
     @Nested
     @DisplayName("createUser()")
@@ -98,6 +99,9 @@ class UserServiceImplTest {
                     "secret123",
                     UserRole.OWNER,
                     FIXED_BUSINESS_ID
+            );
+            Mockito.lenient().when(passwordEncoder.encode(anyString())).thenAnswer(inv ->
+                    "{bcrypt}encoded_" + inv.getArgument(0)
             );
         }
 
@@ -216,7 +220,6 @@ class UserServiceImplTest {
 
             UserResponse response = userService.createUser(ownerRequest);
 
-            // UserResponse has no password field — verified by checking all field names via record components
             assertThat(response.getClass().getRecordComponents())
                     .extracting(rc -> rc.getName())
                     .doesNotContain("password");
@@ -269,9 +272,11 @@ class UserServiceImplTest {
         }
 
         @Test
-        @DisplayName("should persist a User entity with the correct password from the request")
-        void shouldPersistCorrectPassword() {
-            User saved = buildSavedUser("Ade Bello", "ade@example.com", "secret123", UserRole.OWNER, business);
+        @DisplayName("should encode the raw password before persisting the user entity")
+        void shouldPersistEncodedPassword() {
+            String encodedPassword = "{bcrypt}$2a$10$encodedHashValue";
+            when(passwordEncoder.encode("secret123")).thenReturn(encodedPassword);
+            User saved = buildSavedUser("Ade Bello", "ade@example.com", encodedPassword, UserRole.OWNER, business);
             when(userRepository.existsByEmail("ade@example.com")).thenReturn(false);
             when(businessRepository.findById(FIXED_BUSINESS_ID)).thenReturn(Optional.of(business));
             when(userRepository.save(any(User.class))).thenReturn(saved);
@@ -279,8 +284,23 @@ class UserServiceImplTest {
 
             userService.createUser(ownerRequest);
 
+            verify(passwordEncoder).encode("secret123");
             verify(userRepository).save(captor.capture());
-            assertThat(captor.getValue().getPassword()).isEqualTo("secret123");
+            assertThat(captor.getValue().getPassword()).isEqualTo(encodedPassword);
+            assertThat(captor.getValue().getPassword()).isNotEqualTo("secret123");
+        }
+
+        @Test
+        @DisplayName("should call passwordEncoder.encode with the raw password exactly once")
+        void shouldCallPasswordEncoderOnce() {
+            User saved = buildSavedUser("Ade Bello", "ade@example.com", "{bcrypt}encoded", UserRole.OWNER, business);
+            when(userRepository.existsByEmail("ade@example.com")).thenReturn(false);
+            when(businessRepository.findById(FIXED_BUSINESS_ID)).thenReturn(Optional.of(business));
+            when(userRepository.save(any(User.class))).thenReturn(saved);
+
+            userService.createUser(ownerRequest);
+
+            verify(passwordEncoder, times(1)).encode("secret123");
         }
 
         @Test
@@ -423,9 +443,7 @@ class UserServiceImplTest {
         }
     }
 
-    // =========================================================================
     // getUserById
-    // =========================================================================
 
     @Nested
     @DisplayName("getUserById()")
@@ -592,9 +610,7 @@ class UserServiceImplTest {
         }
     }
 
-    // =========================================================================
     // getAllUsers
-    // =========================================================================
 
     @Nested
     @DisplayName("getAllUsers()")
@@ -652,9 +668,7 @@ class UserServiceImplTest {
         }
     }
 
-    // =========================================================================
     // updateUser
-    // =========================================================================
 
     @Nested
     @DisplayName("updateUser()")
@@ -776,9 +790,7 @@ class UserServiceImplTest {
         }
     }
 
-    // =========================================================================
     // activateUser
-    // =========================================================================
 
     @Nested
     @DisplayName("activateUser()")
@@ -842,9 +854,7 @@ class UserServiceImplTest {
         }
     }
 
-    // =========================================================================
     // deactivateUser
-    // =========================================================================
 
     @Nested
     @DisplayName("deactivateUser()")
@@ -905,9 +915,7 @@ class UserServiceImplTest {
         }
     }
 
-    // =========================================================================
     // toResponse mapping
-    // =========================================================================
 
     @Nested
     @DisplayName("toResponse() mapping (observed via createUser and getUserById)")
@@ -942,6 +950,7 @@ class UserServiceImplTest {
             CreateUserRequest request = new CreateUserRequest(
                     "Ngozi Adaeze", "ngozi@example.com", "strongPass1", UserRole.STAFF, businessId
             );
+            when(passwordEncoder.encode("strongPass1")).thenReturn("{bcrypt}encoded_strongPass1");
             when(userRepository.existsByEmail("ngozi@example.com")).thenReturn(false);
             when(businessRepository.findById(businessId)).thenReturn(Optional.of(b));
             when(userRepository.save(any(User.class))).thenReturn(saved);

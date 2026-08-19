@@ -53,4 +53,5 @@ public class BusinessController {
     public ResponseEntity<BusinessResponse> deactivateBusiness(@PathVariable UUID id) {
         return ResponseEntity.ok(businessService.deactivateBusiness(id));
     }
+
 }
